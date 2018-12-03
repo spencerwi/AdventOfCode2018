@@ -3,6 +3,9 @@ class Day2
     def initialize(@input : Array(String))
     end
 
+    # Part A problem statement: "checksum" the words by counting the number of 
+    # words that have any letter exactly twice by the number of words that have
+    # any letter exacty three times.
     def part_a : Int32
         two_rep_count, three_rep_count = 0, 0
         @input.each do |word|
@@ -16,6 +19,12 @@ class Day2
         return two_rep_count * three_rep_count
     end
 
+    # Part B problem statement: find two words that "match", where "matching"
+    # is defined as either being identical or having only 1 character different,
+    # as long as the mismatching characters are in the same position (so not 
+    # *exactly* the same as having a levenshtein distance of 1, since levenshtein
+    # allows for addition or removal of letters). Having found those words, find
+    # the letters that they have in common.
     def part_b : Array(Char)
         word1, word2 = nil, nil
         @input.each_combination(size = 2) do |combination|
@@ -35,7 +44,7 @@ class Day2
 
     private def has_a_letter_exactly_n_times(word : String, n : Int32) : Bool
         word.chars
-            .group_by {|itself| itself}
+            .group_by(&.itself)
             .any? {|char, occurrences| occurrences.size == n}
     end
 
@@ -50,11 +59,9 @@ class Day2
     end
 
     private def find_common_letters(word1 : String, word2 : String) : Array(Char)
-        common_letters = [] of Char
-        word1.chars.zip(word2.chars) do |c1, c2|
-            common_letters << c1 if c1 == c2
-        end
-        return common_letters
+        word1.chars.zip(word2.chars)
+            .select {|c1, c2| c1 == c2}         
+            .map(&.first)
     end
 end
         
