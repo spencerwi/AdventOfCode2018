@@ -1,8 +1,4 @@
 alias GuardId = Int32 # just for readability
-enum Status
-    Awake
-    Asleep
-end
 class Day4
     @input : Array(String)
 
@@ -50,7 +46,6 @@ class Day4
 
     private def run_log_lines
         current_guard = nil
-        current_guard_status = Status::Awake
         last_logged_time = nil # keep track of the last logged time so we can figure out sleep ranges
         @input.each do |log_line|
             time_str, msg = log_line.split("] ")
@@ -63,7 +58,6 @@ class Day4
 
             case msg[0, 5]
             when "Guard" then current_guard = msg[/\d+/].to_i
-            when "falls" then current_guard_status = Status::Asleep
             when "wakes" then
                 # Thankfully, once sorted, "wakes" *always* comes after 
                 # "falls asleep" and "begins duty", so we always have a guard, 
@@ -85,10 +79,6 @@ class Day4
                     step_time += Time::Span.new(0, 0, 1) # increment by one minute
                 end
                 @sleep_log_by_guard[current_guard.not_nil!] = sleep_log
-
-                # Finally, set the guard to "Awake"
-                current_guard_status = Status::Awake
-            else raise "Unrecognized log message: '#{msg}'"
             end
 
             last_logged_time = current_time
