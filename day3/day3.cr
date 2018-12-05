@@ -67,29 +67,24 @@ class Day3
 
         # Build our 2D-array "claims map" that will list the distinct claims 
         # made on a given cell, since a finished "claims map" will be needed
-        # by both part A and part B.
-        
-        # First, figure out how wide/tall it needs to be.
-        largest_x = @input.max_of {|region| region.bottom_right.x}
-        largest_y = @input.max_of {|region| region.bottom_right.y}
-
-        # Then populate each cell with an empty set of claim ids.
-        @claims_map = Array.new(largest_y + 1) do 
-            Array.new(largest_x + 1) { Set(Int32).new }
+        # by both part A and part B. Each cell is pre-populated with an empty 
+        # set of claim ids.
+        @claims_map = Array.new(1000) do 
+            Array.new(1000) { Set(Int32).new }
         end
 
-        # And finally, apply each claim to the claims map to "fill it out".
+        # Now apply each claim to the claims map to "fill it out".
         @input.each {|region| region.apply_to_claims_map(@claims_map)}
     end
 
-    # Problem statement for part A: find how many cells are claimed at least twice
+    # Part A problem statement: find how many cells are claimed at least twice
     def part_a : Int32
         return @claims_map.flat_map {|row| row} # get a flat array of every cell
             .select {|cell| cell.size > 1} # filter out ones that were only claimed once
             .size # and see how many are left
     end
 
-    # Problem statement for part B: find the ID of the only claim with no overlaps
+    # Part B problem statement: find the ID of the only claim with no overlaps
     def part_b: Int32
         multi_claims, single_claims = @claims_map.flat_map {|row| row} # again, get a flat array of every cell
             .reject {|cell| cell.empty?} # filter out unclaimed cells
