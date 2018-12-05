@@ -26,24 +26,22 @@ class Day5
 	end
 
 	private def react_fully(word_to_reduce)
-        result, reaction_count = self.run_reactions(word_to_reduce)
-        until reaction_count == 0 # stop once we've hit equilibrium
+        result, reactions_occurred = self.run_reactions(word_to_reduce)
+        while reactions_occurred # stop once we've hit equilibrium
 			result, reaction_count = self.run_reactions(result)
         end
         return result.size
 	end
 
-    private def run_reactions(word : String) : Tuple(String, Int32)
+    private def run_reactions(word : String) : Tuple(String, Bool)
 		# For every letter in the alphabet, remove all reactive pairs (adjacent 
 		# uppercase+lowercase and lowercase+uppercase
 		new_word = ('A'..'Z').map(&.to_s).reduce(word) do |word, char|
 			word.gsub(char + char.downcase, "")
 				.gsub(char.downcase + char, "")
 		end
-		# Since every reaction removes two letters, the number of reactions is
-		# the number of letters removed, divided by two
-		reaction_count = (word.size - new_word.size) / 2
-        return {new_word, reaction_count}
+		reactions_occurred = (word.size != new_word.size)
+        return {new_word, reactions_occurred}
     end
 end
 
