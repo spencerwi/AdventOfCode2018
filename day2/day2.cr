@@ -30,15 +30,14 @@ class Day2
         @input.each_combination(size = 2) do |combination|
             possible_word1, possible_word2 = combination
             if self.words_match(possible_word1, possible_word2)
-                word1 = possible_word1
-                word2 = possible_word2
+                word1, word2 = possible_word1, possible_word2
                 break
             end
         end
-        if word1 != nil && word2 != nil
-            return self.find_common_letters(word1.not_nil!, word2.not_nil!)
-        else
+        if word1.nil? || word2.nil?
             raise "No matching words found! Something must be wrong with the input."
+        else
+            return self.find_common_letters(word1, word2)
         end
     end
 

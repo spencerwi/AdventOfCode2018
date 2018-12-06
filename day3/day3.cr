@@ -39,20 +39,19 @@ class Claim
 
     # Parses a string of the form "#1 @ x1,y1: WxH" into a Claim
     def self.parse(claim_string : String) : Claim
-        pound_id, top_left_and_size = claim_string.split(" @ ")
-        id = pound_id.sub("#", "").to_i
-
-        top_left_coords, size = top_left_and_size.split(": ")
-        x, y = top_left_coords.split(",").map {|coord| coord.to_i}
-        top_left = Point.new(x, y)
-
-        width, height = size.split("x").map {|size| size.to_i}
-        bottom_right = Point.new(
-            x + width - 1, # subtract one because the top-left cell is included 
-            y + height - 1 # in the width/height of each claim
-        )
-
-        return Claim.new(id, top_left, bottom_right)
+        if /#(?<id>\d+) @ (?<x>\d+),(?<y>\d+): (?<width>\d+)x(?<height>\d+)/ =~ claim_string
+            id, x, y, width, height = ["id", "x", "y", "width", "height"].map do |matched_field| 
+                $~[matched_field].to_i
+            end
+            top_left = Point.new(x, y)
+            bottom_right = Point.new(
+                x + width - 1, # subtract one because the top-left cell is 
+                y + height - 1 # included in the width/height of each claim
+            )
+            return Claim.new(id, top_left, bottom_right)
+        else 
+            raise "Invalid claim string: \"#{claim_string}\""
+        end
     end
 end
 

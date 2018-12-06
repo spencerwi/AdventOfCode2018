@@ -2,4 +2,4 @@
 
 ## Requirements
 
-[Crystal-lang](https://crystal-lang.org), at least 0.26.1
+[Crystal-lang](https://crystal-lang.org), at least 0.27.0

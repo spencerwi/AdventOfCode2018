@@ -69,7 +69,7 @@ class Day4
                 @sleep_totals_by_guard[current_guard.not_nil!] += sleep_span.minutes
 
                 # Now, update their sleep log, by first grabbing their log
-                sleep_log = @sleep_log_by_guard.fetch(current_guard.not_nil!)
+                sleep_log = @sleep_log_by_guard[current_guard.not_nil!]
                 # then "stepping through" the minutes between when they fell 
                 # asleep and when they woke up, incrementing each minute for 
                 # each time they slept through it.
