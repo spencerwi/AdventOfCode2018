@@ -1,23 +1,15 @@
-*.annot
-*.cmo
-*.cma
-*.cmi
-*.a
-*.o
-*.cmx
-*.cmxs
-*.cmxa
+# Created by https://www.gitignore.io/api/crystal
+# Edit at https://www.gitignore.io/?templates=crystal
 
-# ocamlbuild working directory
-_build/
+### Crystal ###
+/docs/
+/lib/
+/bin/
+/.shards/
+*.dwarf
 
-# ocamlbuild targets
-*.byte
-*.native
+# Libraries don't need dependency lock
+# Dependencies will be locked in application that uses them
+#/shard.lock
 
-# oasis generated files
-setup.data
-setup.log
-
-# Merlin configuring file for Vim and Emacs
-.merlin
+# End of https://www.gitignore.io/api/crystal
