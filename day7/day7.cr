@@ -1,4 +1,9 @@
 alias Step = Char
+
+# A worker class, used by part B. Workers take a set amount of base time to 
+# complete a step, along with additional time based on what the step is (its 
+# ordinal position in the alphabet). They track whether they're ready for new
+# work, and what step they're working on.
 class Worker 
     @current_step : Step?
     getter current_step
@@ -30,6 +35,11 @@ class Worker
     end
 end
 
+# A project class, used by parts A and B. The Project tracks which steps have
+# been completed, which steps remain to be completed, the dependency graph of
+# all steps in the project, and the total set of all steps in the project.
+# Using this information, it can determine which step should be worked next,
+# and when the whole project is complete.
 class Project
     @completed_steps : Set(Step)
     getter completed_steps
@@ -109,6 +119,8 @@ class Project
         return Project.new(deps, all_steps)
     end
 end
+
+# Finally, our solver class.
 class Day7
     @project : Project
 
@@ -176,6 +188,7 @@ class Day7
             # Debugging: print out the state of the world
             # workers_steps = workers.map {|w| w.current_step || '.'}
             # puts "#{clock}: #{workers_steps}, completed: #{@project.completed_steps}"
+
 
             # Check for project completion before advancing time, to avoid 
             # off-by-one errors caused by waiting until the second *after* we
