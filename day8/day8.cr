@@ -115,7 +115,7 @@ class Day8
     end
 
     # Part B problem statement: find the value of the root node.
-    # see Node#value for how that's defined.
+    # see `Node#value` for how that's defined.
     def part_b
         @root.not_nil!.value
     end
