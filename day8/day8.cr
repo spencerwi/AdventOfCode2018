@@ -77,21 +77,14 @@ class Node
         # those first.
         children_count = cursor.next
         metadata_count = cursor.next
-        children = [] of Node
-        metadata = [] of Int32
 
         # Parse all the children *first* (if there are any), then grab metadata 
         # afterwards. It's the only way to ensure that you're grabbing the 
         # correct elements as metadata.
-        children_count.times do 
-            child = Node.parse_helper(cursor)
-            children << child unless child.nil?
-        end
+        children = (0...children_count).to_a.compact_map { Node.parse_helper(cursor).as?(Node) }
 
         # Now grab the metadata, since the children are safely out of the way.
-        metadata_count.times do 
-            metadata << cursor.next
-        end
+        metadata = (0...metadata_count).to_a.map { cursor.next }
 
         # Et voila! Our tree is parsed! If that seems too simple, start from
         # the base case (no children) and work your way up. 
