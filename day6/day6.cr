@@ -53,7 +53,7 @@ class Day6
     @input : Array(Point)
     @grid : Grid
     
-    def initialize(input_str : Array(String))
+    def initialize(input_str : Array(String), @safe_region_size : Int32 = 10_000)
         @input = input_str.map {|str| Point.parse(str)}
 
         max_x = @input.max_of(&.x)
@@ -101,7 +101,7 @@ class Day6
             total_distance = @input.map do |point| 
                 self.manhattan_distance(x, y, point.x, point.y)
             end.sum
-            safe_region_size += 1 if total_distance < 10_000
+            safe_region_size += 1 if total_distance < @safe_region_size
         end
         return safe_region_size 
     end
@@ -125,6 +125,8 @@ class Day6
     end
 end
 
-day6 = Day6.new(File.read_lines("input.txt"))
-puts "6A: #{day6.part_a}"
-puts "6B: #{day6.part_b}"
+unless PROGRAM_NAME.includes?("crystal-run-spec")
+    day6 = Day6.new(File.read_lines("input.txt"), safe_region_size = 10_000)
+    puts "6A: #{day6.part_a}"
+    puts "6B: #{day6.part_b}"
+end
