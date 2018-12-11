@@ -203,6 +203,8 @@ class Day7
     end
 end
 
-day7 = Day7.new(File.read_lines("input.txt"), workers = 5, step_base_time = 60)
-puts "7A: #{day7.part_a}"
-puts "7B: #{day7.part_b}"
+unless PROGRAM_NAME.includes?("crystal-run-spec") 
+    day7 = Day7.new(File.read_lines("input.txt"), workers = 5, step_base_time = 60)
+    puts "7A: #{day7.part_a}"
+    puts "7B: #{day7.part_b}"
+end
