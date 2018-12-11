@@ -5,6 +5,7 @@ alias Size = Int32
 alias PowerGrid = Array(Array(Int32))
 
 class Day11
+    getter grid
     @grid : PowerGrid
 
     def initialize(serial_number : Int32)
@@ -98,6 +99,8 @@ class Day11
     end
 end
 
-day11 = Day11.new(8772) 
-puts "11A: #{day11.part_a}"
-puts "11B: #{day11.part_b}"
+unless PROGRAM_NAME.includes?("crystal-run-spec")
+    day11 = Day11.new(8772) 
+    puts "11A: #{day11.part_a}"
+    puts "11B: #{day11.part_b}"
+end
