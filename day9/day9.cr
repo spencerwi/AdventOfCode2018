@@ -81,6 +81,9 @@ class Day9
         longer_game.run
     end
 end
-day9 = Day9.new(File.read("input.txt"))
-puts "9A: #{day9.part_a}"
-puts "9B: #{day9.part_b}"
+
+unless PROGRAM_NAME.includes?("crystal-run-spec")
+    day9 = Day9.new(File.read("input.txt"))
+    puts "9A: #{day9.part_a}"
+    puts "9B: #{day9.part_b}"
+end
