@@ -114,6 +114,8 @@ class Day8
     end
 end
 
-day8 = Day8.new(File.read("input.txt").split.map(&.to_i))
-puts "8A: #{day8.part_a}"
-puts "8B: #{day8.part_b}"
+unless PROGRAM_NAME.includes?("crystal-run-spec")
+    day8 = Day8.new(File.read("input.txt").split.map(&.to_i))
+    puts "8A: #{day8.part_a}"
+    puts "8B: #{day8.part_b}"
+end
