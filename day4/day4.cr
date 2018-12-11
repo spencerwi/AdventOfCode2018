@@ -86,6 +86,9 @@ class Day4
     end
 
 end
-day4 = Day4.new(File.read_lines("input.txt"))
-puts "4A: #{day4.part_a}"
-puts "4B: #{day4.part_b}"
+
+unless PROGRAM_NAME.includes?("crystal-run-spec")
+    day4 = Day4.new(File.read_lines("input.txt"))
+    puts "4A: #{day4.part_a}"
+    puts "4B: #{day4.part_b}"
+end

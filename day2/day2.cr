@@ -64,8 +64,8 @@ class Day2
     end
 end
         
-    
-
-day2 = Day2.new(File.read_lines("input.txt"))
-puts "2A: #{day2.part_a}"
-puts "2B: #{day2.part_b.join}"
+unless PROGRAM_NAME.includes?("crystal-run-spec")
+    day2 = Day2.new(File.read_lines("input.txt"))
+    puts "2A: #{day2.part_a}"
+    puts "2B: #{day2.part_b.join}"
+end
