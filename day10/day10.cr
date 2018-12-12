@@ -38,22 +38,13 @@ class Day10
       smallest_y, largest_y = @stars.minmax_of(&.position[1])
 
       if (largest_x - smallest_x) <= 100 && (largest_y - smallest_y) < 100
-        (smallest_y..largest_y).each do |y|
-          if @stars.any? {|star| star.position[1] == y} # skip blank rows
-            (smallest_x..largest_x).map do |x|
-              if @stars.any? {|star| star.position == {x,y}}
-                print "#"
-              else
-                print " "
-              end
-            end
-            print "\n"
-          end
-        end
+          self.print_night_sky(
+              {smallest_x, largest_x}, 
+              {smallest_y, largest_y}
+          )
 
-        # Write the image to a file, and wait for user to hit enter
-        puts "#{seconds_passed} seconds have passed. Hit enter to move forward 1 second"
-        _ = read_line
+          puts "#{seconds_passed} seconds have passed. Hit enter to move forward 1 second"
+          _ = read_line
       end
 
       seconds_passed += 1
@@ -61,14 +52,29 @@ class Day10
     end
   end
 
-  def part_b
-  end
-
-  def print_usage_and_exit
-    puts "Usage: day10 [A|a|B|b]"
-    exit 1
+  def print_night_sky(
+      x_bounds : Tuple(Int32, Int32), 
+      y_bounds : Tuple(Int32, Int32), 
+      output : IO = STDOUT # used mostly just for unit testing
+  )
+      min_x, max_x = x_bounds
+      min_y, max_y = y_bounds
+      (min_y..max_y).each do |y|
+          if @stars.any? {|star| star.position[1] == y} # skip blank rows
+              (min_x..max_x).map do |x|
+                  if @stars.any? {|star| star.position == {x,y}}
+                      output << "#"
+                  else
+                      output << "."
+                  end
+              end
+              output << "\n"
+          end
+      end
   end
 end
 
-day10 = Day10.new(File.read_lines("input.txt"))
-day10.solve
+unless PROGRAM_NAME.includes?("crystal-run-spec")
+    day10 = Day10.new(File.read_lines("input.txt"))
+    day10.solve
+end
