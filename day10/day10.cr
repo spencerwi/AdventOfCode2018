@@ -36,8 +36,7 @@ class Day10
       # If the stars are suuuuper far apart, we know they can't possibly be letters yet.
       smallest_x, largest_x = @stars.minmax_of(&.position[0])
       smallest_y, largest_y = @stars.minmax_of(&.position[1])
-
-      if (largest_x - smallest_x) <= 100 && (largest_y - smallest_y) < 100
+      if (largest_y - smallest_y) <= 30
           self.print_night_sky(
               {smallest_x, largest_x}, 
               {smallest_y, largest_y}
