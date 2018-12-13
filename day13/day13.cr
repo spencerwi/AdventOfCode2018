@@ -131,6 +131,12 @@ class Cart
 end
 
 class Day13
+
+    enum CrashBehavior
+        ReportFirst
+        RemoveCrashedCarts
+    end
+
     getter grid, carts
 
     @carts : Array(Cart)
@@ -151,25 +157,60 @@ class Day13
         end
     end
 
-    def part_a
+    # Part A problem statement: locate the site of the first crash.
+    def part_a(show_simulation : Bool = false) : Tuple(Int32, Int32)
+        self.redraw_sim_output if show_simulation
         loop do
-            crash_location = self.tick
+            crash_location = self.tick(CrashBehavior::ReportFirst)
+            self.redraw_sim_output if show_simulation
             return crash_location unless crash_location.nil?
         end
     end
 
+    # Part B problem statement: remove any carts that collide, and
+    # then report the location of the last remaining cart.
+    def part_b(show_simulation : Bool = false) : Tuple(Int32, Int32)
+        self.redraw_sim_output if show_simulation
+        loop do
+            self.tick(CrashBehavior::RemoveCrashedCarts)
+            self.redraw_sim_output if show_simulation
+            if @carts.size == 1
+                return {@carts[0].x, @carts[0].y}
+            end
+        end
+    end
+
+
     # Advances carts one at a time, checking for collisions and reporting the
     # location of the first collision, if any occurred.
-    def tick : Tuple(Int32, Int32)?
-        @carts.each do |cart| 
+    def tick(crash_behavior : CrashBehavior) : Tuple(Int32, Int32)?
+        new_carts = @carts.dup
+
+        # Move all carts, starting from the top-left one
+        @carts.sort_by {|c| {c.y, c.x} }.each do |cart| 
             cart.tick(@grid)
             carts_already_occupying_new_position = 
                 @carts.reject {|other| other == cart}
                 .select {|other| other.x == cart.x && other.y == cart.y}
 
-            return {cart.x, cart.y} unless carts_already_occupying_new_position.empty?
+            if carts_already_occupying_new_position.size > 0
+                if crash_behavior.report_first?
+                    return {cart.x, cart.y}
+                elsif crash_behavior.remove_crashed_carts?
+                    # remove all crashed carts
+                    new_carts.delete(cart) # this one
+                    carts_already_occupying_new_position.each {|c| new_carts.delete(c)} # and any others on that spot
+                end
+            end
         end
+
+        @carts = new_carts
         return nil
+    end
+
+    private def redraw_sim_output
+        puts `clear`
+        puts self.to_s
     end
 
     def to_s
@@ -189,4 +230,8 @@ end
 unless PROGRAM_NAME.includes?("crystal-run-spec")
     day13 = Day13.new(File.read_lines("input.txt"))
     puts "13A: #{day13.part_a}"
+
+    # Reset state by re-reading input
+    day13 = Day13.new(File.read_lines("input.txt"))
+    puts "13B: #{day13.part_b}"
 end
