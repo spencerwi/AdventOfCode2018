@@ -78,8 +78,7 @@ class Day14
 end
 
 unless PROGRAM_NAME.includes?("crystal-run-spec")
-    # day14 = Day14.new("890691")
-    day14 = Day14.new("2018")
+    day14 = Day14.new("890691")
     puts "14A: #{day14.part_a}"
     puts "14B: #{day14.part_b}"
 end
