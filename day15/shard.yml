@@ -1,0 +1,17 @@
+name: day15
+version: 0.1.0
+
+authors:
+  - spencerwi <spencerwi@gmail.com>
+
+dependencies:
+    a-star:
+        github: petoem/a-star.cr
+
+targets:
+  day15:
+    main: src/day15.cr
+
+crystal: 0.27.0
+
+license: MIT
