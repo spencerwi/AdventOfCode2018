@@ -1,9 +1,5 @@
 version: 1.0
 shards:
-  a-star:
-    github: petoem/a-star.cr
-    version: 0.1.1
-
   pathfinding:
     github: dawkot/pathfinding
     commit: d060fb31b472593b0f9da55faacaa2828f8eebf0
