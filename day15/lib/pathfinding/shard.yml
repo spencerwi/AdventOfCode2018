@@ -1,0 +1,16 @@
+name: pathfinding
+version: 0.1.0
+
+authors:
+  - dawkot <97dawkot@gmail.com>
+
+crystal: 0.26.0
+
+license: MIT
+
+description:
+  "A pathfinding library."
+
+dependencies:
+  pqueue:
+    github: dawkot/pqueue

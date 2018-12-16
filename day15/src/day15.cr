@@ -1,4 +1,4 @@
-require "a-star" # Look, I could implement A* pathfinding myself, but why? then
+require "pathfinding" # Pull in a BFS lib to do pathfinding on the grid
 
 abstract class GridElement
   abstract def tick(grid : Grid, own_coords : Coords)
@@ -14,7 +14,11 @@ abstract class Warrior < GridElement
   end
 
   def tick(grid : Grid, own_coords : Coords)
-    enemies_in_attack_range = grid.neighbors(own_coords).map(&.[1]).select {|other| self.hates?(other)}
+    enemies_in_attack_range : Array(Warrior) = grid.neighbors(own_coords)
+      .map {|coords, other_element| other_element}
+      .select {|other| self.hates?(other)}
+      .map(&.as(Warrior))
+
     if enemies_in_attack_range.empty?
       self.move(grid, own_coords)
     else
@@ -34,23 +38,24 @@ abstract class Warrior < GridElement
     end.reject {|_, path| path.nil?}
       .to_h
 
-    destination = paths_to_attack_targets.min_by do |space_coords, path|
+    destination, _ = paths_to_attack_targets.min_by do |space_coords, path|
       x, y = space_coords
-      {path.not_nil!.size, y, x}
+      {path.not_nil!.size, x, y}
     end
 
-    if destination
+    if destination && destination[1]
       current_x, current_y = own_coords
-      destination_x, destination_y = destination
+      dest_x, dest_y = destination.not_nil!
       grid[current_x, current_y] = EmptySpace.new
-      grid[destination_x, destination_y] = self
+      grid[dest_x, dest_y] = self
     end
   end
 
   abstract def hates?(other : GridElement)
 
   def find_targets(grid : Grid) : Array(Tuple(Coords, Warrior))
-    grid.cells.select {|coords, cell| self.hates?(cell.as(Warrior)) }.as(Array(Tuple(Coords, Warrior)))
+    grid.cells.select {|coords, cell| self.hates?(cell) }
+      .map {|coords, cell| {coords, cell.as(Warrior)} }
   end
 
   def attack(other : Warrior)
@@ -111,11 +116,7 @@ alias Coords = Tuple(X, Y)
 
 
 class Grid
-  @pathfinding_nodes : Array(Array(AStar::Node(Coords)))
-
   def initialize(@arr : Array(Array(GridElement)))
-    @pathfinding_nodes = Array(Array(AStar::Node(Coords))).new
-    self.update_pathfinding_nodes
   end
 
   def [](x : X, y : Y)
@@ -155,16 +156,14 @@ class Grid
       .map {|x, y| { {x, y}, self.[x,y] } }
   end
 
-  def path_between(a : Coords, b : Coords) : Array(AStar::Node(Coords))?
+  def path_between(a : Coords, b : Coords) : Array(Coords)?
     a_x, a_y = a
     b_x, b_y = b
-    return AStar.search(@pathfinding_nodes[a_y][a_x], @pathfinding_nodes[b_y][b_x]) do |node1, node2|
-      x1, y1 = node1.data
-      x2, y2 = node2.data
-      Math.sqrt(
-        (((x1 - x2)**2) + ((y1 - y2)**2)) * 10
-      )
+    success = ->(c : Coords) { c == b }
+    find_neighbors = ->(c : Coords) do
+      self.neighbors(c).reject {|coords, elem| elem.is_a?(Wall)}.map {|coords, elem| coords}
     end
+    return Pathfinding.bfs(a, success, find_neighbors)
   end
 
   def location_of(e : GridElement) : Coords?
@@ -183,7 +182,7 @@ class Grid
       row.each_with_index do |cell, x|
         cell.tick(self, {x, y})
         if cell.is_a?(Warrior) && !cell.is_alive?
-          @arr[x, y] = EmptySpace.new
+          self[x, y] = EmptySpace.new
         end
       end
     end
@@ -217,24 +216,6 @@ class Grid
     return false if y >= self.height
     return false if x >= self.width
     return true
-  end
-
-  private def update_pathfinding_nodes
-    @pathfinding_nodes = (0...self.height).map do |y|
-      (0...self.width).map do |x|
-        AStar::Node.new({x, y})
-      end
-    end
-    @pathfinding_nodes.each do |row|
-      row.each do |node|
-        non_wall_neighbors = self.neighbors(node.data).reject {|coords, neighbor| neighbor.is_a?(Wall)}
-        non_wall_neighbors.each do |neighbor_coords, _|
-          neighbor_x, neighbor_y = neighbor_coords
-          neighbor_node = @pathfinding_nodes[neighbor_y][neighbor_x]
-          node.connect(neighbor_node, 1)
-        end
-      end
-    end
   end
 
   def to_s : String

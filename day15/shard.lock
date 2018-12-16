@@ -4,3 +4,11 @@ shards:
     github: petoem/a-star.cr
     version: 0.1.1
 
+  pathfinding:
+    github: dawkot/pathfinding
+    commit: d060fb31b472593b0f9da55faacaa2828f8eebf0
+
+  pqueue:
+    github: dawkot/pqueue
+    commit: 90698adb4d5e6704566eb41cf22607c9533b5bc7
+

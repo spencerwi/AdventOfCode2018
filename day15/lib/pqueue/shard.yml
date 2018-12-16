@@ -1,0 +1,12 @@
+name: pqueue
+version: 0.1.0
+
+authors:
+  - dawkot <97dawkot@gmail.com>
+
+crystal: 0.26.0
+
+license: MIT
+
+description:
+  A priority queue library.

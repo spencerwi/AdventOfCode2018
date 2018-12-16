@@ -134,16 +134,15 @@ describe Goblin do
 
     it "hurts enemies" do
       goblin = Goblin.new
-      elf = Goblin.new
+      elf = Elf.new
 
       goblin.attack(elf)
 
       elf.hp.should eq 197
-      enelf
 
       it "kills a nearly-dead enemy" do
         goblin = Goblin.new
-        nearly_dead_elf = Goblin.new
+        nearly_dead_elf = Elf.new
         nearly_dead_elf.hp = 3
 
         goblin.attack(nearly_dead_elf)
@@ -153,7 +152,7 @@ describe Goblin do
 
       it "doesn't reduce hp below 0" do
         goblin = Goblin.new
-        nearly_dead_elf = Goblin.new
+        nearly_dead_elf = Elf.new
         nearly_dead_elf.hp = 1
 
         goblin.attack(nearly_dead_elf)

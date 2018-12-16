@@ -5,8 +5,10 @@ authors:
   - spencerwi <spencerwi@gmail.com>
 
 dependencies:
-    a-star:
-        github: petoem/a-star.cr
+  a-star:
+    github: petoem/a-star.cr
+  pathfinding:
+    github: dawkot/pathfinding
 
 targets:
   day15:
