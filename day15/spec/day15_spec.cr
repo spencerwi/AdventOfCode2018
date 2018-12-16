@@ -217,6 +217,19 @@ describe Day15 do
 
   describe "#part_a" do
     it "behaves correctly for sample input" do
+
+      sample_input = <<-INPUT
+      #######
+      #G..#E#
+      #E#E.E#
+      #G.##.#
+      #...#E#
+      #...E.#
+      #######
+      INPUT
+
+      day15 = Day15.new(sample_input.lines)
+      day15.part_a.should eq 36334
     end
   end
 

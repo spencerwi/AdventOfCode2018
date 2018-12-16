@@ -29,6 +29,8 @@ abstract class Warrior < GridElement
 
   def move(grid : Grid, own_coords : Coords)
     targets = self.find_targets(grid)
+    return if targets.empty?
+
     spaces_in_range_of_targets = targets.flat_map do |target_coords, target|
       grid.neighbors(target_coords).select(&.is_a?(EmptySpace))
     end
@@ -37,6 +39,8 @@ abstract class Warrior < GridElement
       {space_coords, grid.path_between(own_coords, space_coords)}
     end.reject {|_, path| path.nil?}
       .to_h
+
+    return if paths_to_attack_targets.empty?
 
     destination, _ = paths_to_attack_targets.min_by do |space_coords, path|
       x, y = space_coords
@@ -190,24 +194,20 @@ class Grid
 
   def living_warriors
     @arr.flat_map do |row|
-      row.select(&.is_a?(Warrior))
+      row.select(&.is_a?(Warrior)).map(&.as(Warrior))
     end
   end
 
   def winning_side
-    elves = @arr.flat_map do |row|
-      row.select(&.is_a?(Elf))
+    cells = self.cells
+    there_are_still_elves = cells.any?(&.is_a?(Elf))
+    there_are_still_goblins = cells.any?(&.is_a?(Goblin))
+
+    case {there_are_still_elves, there_are_still_goblins}
+    when {true, false} then return Elf
+    when {false, true} then return Goblin
+    else return nil
     end
-
-    return Goblin if elves.empty?
-
-    goblins = @arr.flat_map do |row|
-      row.select(&.is_a?(Goblins))
-    end
-
-    return Elf if goblins.empty?
-
-    return nil
   end
 
   private def is_in_bounds?(x_y : Coords)
@@ -251,6 +251,13 @@ class Day15
     round_count = 0
     loop do
       @grid.tick
+      winner = @grid.winning_side
+      if winner
+        total_hp_left = @grid.living_warriors.map(&.hp).sum
+        return round_count * total_hp_left
+      end
+
+      round_count += 1
     end
   end
 end
