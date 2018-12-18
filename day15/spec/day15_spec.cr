@@ -101,7 +101,7 @@ describe Warrior do
 
 end
 
-describe Grid do
+describe GameWorld do
   describe ".parse" do
     it "parses correctly" do
       sample_input = <<-INPUT
@@ -116,7 +116,7 @@ describe Grid do
       #########
       INPUT
 
-      grid = Grid.parse(sample_input.lines)
+      grid = GameWorld.parse(sample_input.lines)
 
       grid.to_s.should eq sample_input
 
@@ -159,7 +159,7 @@ describe Grid do
       #.....#
       #######
       INPUT
-      grid = Grid.parse(sample_input.lines)
+      grid = GameWorld.parse(sample_input.lines)
 
 			grid.winning_side.should be_nil
 		end
@@ -174,7 +174,7 @@ describe Grid do
       #.....#
       #######
       INPUT
-      grid = Grid.parse(sample_input.lines)
+      grid = GameWorld.parse(sample_input.lines)
 
 			grid.winning_side.should eq Warrior::Team::Goblin
 		end
@@ -189,7 +189,7 @@ describe Grid do
       #.....#
       #######
       INPUT
-      grid = Grid.parse(sample_input.lines)
+      grid = GameWorld.parse(sample_input.lines)
 
 			grid.winning_side.should eq Warrior::Team::Elf
 		end
@@ -210,7 +210,7 @@ describe Grid do
       #######
       INPUT
 
-      grid = Grid.parse(sample_input.lines)
+      grid = GameWorld.parse(sample_input.lines)
 
       grid.tick
       round_count += 1
@@ -324,9 +324,6 @@ describe Grid do
 			#######
 			OUTPUT
 
-      puts "round_count #{round_count}"
-      puts "score: #{grid.score}"
-
       # When a warrior notices that there are no more targets, then it should
       # raise the alarm that the battle is over, and that should bubble up
       # through grid.tick
@@ -346,12 +343,12 @@ describe Grid do
       #######
       INPUT
 
-      grid = Grid.parse(input.lines)
+      grid = GameWorld.parse(input.lines)
       grid.tick
       grid.to_s.should eq <<-OUTPUT
       #######
       #######
-      #..EG.#
+      #E..G.#
       #G#####
       #.#####
       #######
@@ -365,7 +362,7 @@ describe Grid do
       ####
       INPUT
 
-      grid = Grid.parse(input.lines)
+      grid = GameWorld.parse(input.lines)
       grid.tick
       grid.to_s.should eq input
       grid[2,1].as(Warrior).hp.should eq 197 # elf should attack top goblin
@@ -379,7 +376,7 @@ describe Grid do
       ########
       INPUT
 
-      grid = Grid.parse(input.lines)
+      grid = GameWorld.parse(input.lines)
       grid.tick
       grid.to_s.should eq <<-OUTPUT
       ########
@@ -387,6 +384,7 @@ describe Grid do
       #.######
       ########
       OUTPUT
+
     end
   end
 end
@@ -394,8 +392,8 @@ end
 describe Day15 do
 
   describe "#part_a" do
-    it "behaves correctly for sample input" do
 
+    it "behaves correctly for sample input 1 " do
       sample_input = <<-INPUT
       #######
       #G..#E#
@@ -406,11 +404,134 @@ describe Day15 do
       #######
       INPUT
 
+      expected_final_grid_state = <<-OUTPUT
+      #######
+      #...#E# E(200)
+      #E#...# E(197)
+      #.E##.# E(185)
+      #E..#E# E(200), E(200)
+      #.....#
+      #######
+      OUTPUT
+
       day15 = Day15.new(sample_input.lines)
-      result = day15.part_a(true)
-			puts day15.grid.to_s(true)
+      result = day15.part_a
+      day15.grid.to_s(true).should eq expected_final_grid_state
 			result.should eq 36334
     end
+
+    it "behaves correctly for sample input 2 " do
+      sample_input = <<-INPUT
+      #######
+      #E..EG#
+      #.#G.E#
+      #E.##E#
+      #G..#.#
+      #..E#.#
+      #######
+      INPUT
+
+      expected_final_grid_state = <<-OUTPUT
+      #######
+      #.E.E.# E(164), E(197)
+      #.#E..# E(200)
+      #E.##.# E(98)
+      #.E.#.# E(200)
+      #...#.#
+      #######
+      OUTPUT
+
+      day15 = Day15.new(sample_input.lines)
+      result = day15.part_a
+      day15.grid.to_s(true).should eq expected_final_grid_state
+			result.should eq 39514
+    end
+
+    it "behaves correctly for sample input 3 " do
+      sample_input = <<-INPUT
+      #######
+      #E.G#.#
+      #.#G..#
+      #G.#.G#
+      #G..#.#
+      #...E.#
+      #######
+      INPUT
+
+      expected_final_grid_state = <<-OUTPUT
+      #######
+      #G.G#.# G(200), G(98)
+      #.#G..# G(200)
+      #..#..#
+      #...#G# G(95)
+      #...G.# G(200)
+      #######
+      OUTPUT
+
+      day15 = Day15.new(sample_input.lines)
+      result = day15.part_a
+      day15.grid.to_s(true).should eq expected_final_grid_state
+			result.should eq 27755
+    end
+
+    it "behaves correctly for sample input 4 " do
+      sample_input = <<-INPUT
+      #######
+      #.E...#
+      #.#..G#
+      #.###.#
+      #E#G#G#
+      #...#G#
+      #######
+      INPUT
+
+      expected_final_grid_state = <<-OUTPUT
+      #######
+      #.....#
+      #.#G..# G(200)
+      #.###.#
+      #.#.#.#
+      #G.G#G# G(98), G(38), G(200)
+      #######
+      OUTPUT
+
+      day15 = Day15.new(sample_input.lines)
+      result = day15.part_a
+      day15.grid.to_s(true).should eq expected_final_grid_state
+			result.should eq 28944
+    end
+
+    it "behaves correctly for sample input 4 " do
+      sample_input = <<-INPUT
+      #########
+      #G......#
+      #.E.#...#
+      #..##..G#
+      #...##..#
+      #...#...#
+      #.G...G.#
+      #.....G.#
+      #########
+      INPUT
+
+      expected_final_grid_state = <<-OUTPUT
+      #########
+      #.G.....# G(137)
+      #G.G#...# G(200), G(200)
+      #.G##...# G(200)
+      #...##..#
+      #.G.#...# G(200)
+      #.......#
+      #.......#
+      #########
+      OUTPUT
+
+      day15 = Day15.new(sample_input.lines)
+      result = day15.part_a
+      day15.grid.to_s(true).should eq expected_final_grid_state
+			result.should eq 18740
+    end
+
   end
 
 end
