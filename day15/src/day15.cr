@@ -73,23 +73,35 @@ class Warrior < GameWorldElement
     spaces_in_range_of_targets = targets.flat_map do |target_coords, target|
       grid.neighbors(target_coords).select(&.[1].is_a?(EmptySpace))
     end
+    # If there are no empty spaces beside a target to attack, bail out.
+    return own_coords if spaces_in_range_of_targets.empty?
 
-    paths_to_attack_targets = spaces_in_range_of_targets.map do |space_coords, space|
-      {space_coords, grid.path_between(own_coords, space_coords)}
-    end.reject {|_, path| path.nil?}
-      .to_h
+    possible_next_steps = grid.neighbors(own_coords).select {|step_coords, cell| cell.is_a?(EmptySpace)}
+    # If there are no spaces I can move into, bail out.
+    return own_coords if possible_next_steps.empty?
 
-    return own_coords if paths_to_attack_targets.empty?
-
-    target_square, path_to_target_square = paths_to_attack_targets.min_by do |space_coords, path|
-      # Choose the shortest path. If there's a tie, choose the top-left-most
-      # space as your next step.
-      first_step_x, first_step_y = path.not_nil![1]
-      {path.not_nil!.size, first_step_y, first_step_x}
+    # Look for the step that starts me on the shortest path.
+    shortest_attack_path_for_each_step = possible_next_steps.compact_map do |step_coords, _|
+      shortest_attack_path = spaces_in_range_of_targets.compact_map do |space_coords, _|
+        grid.path_between(step_coords, space_coords)
+      end.min_of?(&.size)
+      if shortest_attack_path.nil?
+        nil
+      else
+        {step_coords, shortest_attack_path}
+      end
     end
+    return own_coords if shortest_attack_path_for_each_step.empty?
 
-    if path_to_target_square && path_to_target_square[1]
-      return path_to_target_square[1]
+    # Pick the step that leads on the shortest path, with ties broken by reading order.
+    next_step : Coords = shortest_attack_path_for_each_step.min_by do |step, path_size|
+      step_x, step_y = step
+      {path_size, step_y, step_x}
+    end.first
+
+    # If we found a next step, take it. Otherwise, sit still.
+    if next_step
+      return next_step.not_nil!
     else
       return own_coords
     end
