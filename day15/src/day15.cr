@@ -76,32 +76,42 @@ class Warrior < GameWorldElement
     # If there are no empty spaces beside a target to attack, bail out.
     return own_coords if spaces_in_range_of_targets.empty?
 
+    # Now we choose the closest one, with reading-order tiebreaker
+    destination_and_distance = spaces_in_range_of_targets.compact_map do |space_coords, _|
+      path_to_space = grid.path_between(own_coords, space_coords)
+      if path_to_space
+        {space_coords, path_to_space.size}
+      else
+        nil
+      end
+    end.min_by? do |space, distance|
+      space_x, space_y = space
+      {distance, space_y, space_x}
+    end
+    return own_coords unless destination_and_distance
+    destination, _ = destination_and_distance
+
+    # Now we pick the step that is fastest to get there, with reading-order
+    # tiebreaker.
     possible_next_steps = grid.neighbors(own_coords).select {|step_coords, cell| cell.is_a?(EmptySpace)}
     # If there are no spaces I can move into, bail out.
     return own_coords if possible_next_steps.empty?
 
-    # Look for the step that starts me on the shortest path.
-    shortest_attack_path_for_each_step = possible_next_steps.compact_map do |step_coords, _|
-      shortest_attack_path = spaces_in_range_of_targets.compact_map do |space_coords, _|
-        grid.path_between(step_coords, space_coords)
-      end.min_of?(&.size)
-      if shortest_attack_path.nil?
-        nil
+    next_step_and_distance = possible_next_steps.compact_map do |step_coords, _|
+      path_to_destination = grid.path_between(step_coords, destination)
+      if path_to_destination
+        {step_coords, path_to_destination.size}
       else
-        {step_coords, shortest_attack_path}
+        nil
       end
-    end
-    return own_coords if shortest_attack_path_for_each_step.empty?
-
-    # Pick the step that leads on the shortest path, with ties broken by reading order.
-    next_step : Coords = shortest_attack_path_for_each_step.min_by do |step, path_size|
+    end.min_by? do |step, distance|
       step_x, step_y = step
-      {path_size, step_y, step_x}
-    end.first
+      {distance, step_y, step_x}
+    end
 
     # If we found a next step, take it. Otherwise, sit still.
-    if next_step
-      return next_step.not_nil!
+    if next_step_and_distance
+      return next_step_and_distance[0]
     else
       return own_coords
     end
