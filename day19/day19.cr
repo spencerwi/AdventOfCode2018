@@ -31,6 +31,11 @@ class Memory
         end
     end
 
+    def set_registers(other_values : Array(Int32))
+        raise ArgumentError.new("Registers must be of size 6") unless other_values.size == 6
+        @registers = other_values
+    end
+
     def get_real_register_value(index : Int32) : Int32
         @registers[index]
     end
@@ -91,6 +96,15 @@ class Program
         until self.has_halted?
             self.step(verbose)
         end
+    end
+
+    # This is tuned to my specific input. It won't work for others.
+    def run_optimized
+        # All the stuff before the loop just sets our "target" to 10551398.
+        target = 10551398
+        # The loop just tests every pair of numbers to see if they're 
+        # divisors of the target, and if so, adds them to a running sum.
+        return (1..target).select {|i| target.divisible_by?(i) }.sum
     end
 
     def self.parse(input_lines : Array(String)) : Program
@@ -192,17 +206,19 @@ class Day19
         @program = Program.parse(input_lines)
     end
 
+    # Part A problem statement: what's left in register 0 after the program finishes?
     def part_a : Int32
         @program.memory.reset
         @program.run
         return @program.memory.get_real_register_value(0)
     end
 
+    # Part B problem statement: same, but start register 0 with value 1.
+    # This triggers some insane looping that takes forever to finish.
+    # After "disassembling" these steps a bit, it turns out it's summing all the
+    # factors of a specific number. So we just do that.
     def part_b : Int32
-        @program.memory.reset
-        @program.memory[0] = 1
-        @program.run(true)
-        return @program.memory.get_real_register_value(0)
+        return @program.run_optimized
     end
 
 end

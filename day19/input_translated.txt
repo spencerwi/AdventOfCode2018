@@ -1,0 +1,97 @@
+#ip 5
+
+BEGIN
+0    addi 5 16 5     - goto 17
+
+
+[1] = ((2 * 2) * 19) * 11 = 836
+17   addi 1 2 1      - [1] += 2
+18   mulr 1 1 1      - [1] *= [1]
+19   mulr 5 1 1      - [1] *= 19
+20   muli 1 11 1     - [1] *= 11
+
+[3] = (7 * 22) + 8 = 162
+21   addi 3 7 3      - [3] = 7
+22   mulr 3 5 3      - [3] *= 22
+23   addi 3 8 3      - [3] += 8
+
+[1] += 162 = 998
+24   addr 1 3 1      - [1] += [3]
+
+pc += 1
+25   addr 5 0 5      - goto 27
+
+[3] = ((((27 * 28) + 29) * 30) * 14) * 32 = 10550400
+27   setr 5 8 3      - [3] = 27
+28   mulr 3 5 3      - [3] *= 28
+29   addr 5 3 3      - [3] += 29
+30   mulr 5 3 3      - [3] *= 30
+31   muli 3 14 3     - [3] *= 14
+32   mulr 3 5 3      - [3] *= 32
+
+[1] += 10550400 = 10551398
+33   addr 1 3 1      - [1] += 10550400
+
+[0] = 0
+34   seti 0 4 0      - [0] = 0
+
+goto 1
+35   seti 0 3 5      - goto 1
+
+[4] = 1
+1    seti 1 1 4      - [4] = 1
+[2] = 1
+2    seti 1 8 2      - [2] = 1
+
+register state before loop: [0, 10551398, 1, 10550400, 1, 0]
+
+
+THE LOOP
+if [4] * [2] == [1] goto 7 else goto 8
+3    mulr 4 2 3      - [3] = [4] * [2]
+4    eqrr 3 1 3      - [3] = [3] == [1]
+5    addr 3 5 5      - goto 7 if true, 6 if false
+6    addi 5 1 5      - goto 8
+
+IFTRUE_1: [0] += [4], [2] += 1
+7    addr 4 0 0      - [0] += [4]
+8    addi 2 1 2      - [2] += 1
+
+if [2] > [1] goto 12 else LOOP AGAIN (goto 3)
+9    gtrr 2 1 3     - [3] = [2] > [1]
+10   addr 5 3 5     - goto 12 if true, 11 if false
+11   seti 2 6 5     - goto 3 
+
+IFTRUE_2: [4] += 1; if [4] + 1 > [1] exit else goto 2 (set [2] to 1 and loop again)
+12   addi 4 1 4     - [4] += 1
+13   gtrr 4 1 3     - [3] = [4] > [1]
+14   addr 3 5 5     - goto 16 if true, 15 if false
+15   seti 1 4 5     - goto 2
+16   mulr 5 5 5
+
+26   seti 0 9 5
+
+----
+
+SUMMARIZED:
+set registers to [0, 10551398, 1, 0, 1, 0]
+loop do
+  if [4] * [2] == [1]
+    [0] += [4]
+    [2] += 1
+    if [2] > [1] 
+      [4] += 1
+      break if [4] > [1]
+      [2] = 1
+    end
+  else 
+    [2] += 1
+  end
+end
+
+[0] is the sum of every [4] and [2] pair that equals [1]
+[2] gets set to 1 and increments every time, until it's greater than [1],
+at which point [4] increments and it resets to 1.
+
+In other words, this is looping through every pair of numbers each from 1 to [1]
+and checking if they're "co-factors" of [1]. If they are, they're summed together.
