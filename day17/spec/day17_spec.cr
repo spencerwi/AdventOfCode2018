@@ -37,7 +37,7 @@ describe ClayVein do
 end
 
 describe Ground do
-    describe "#tick" do
+    describe "#flow" do
         it "behaves correctly" do
             input = <<-INPUT
             x=495, y=2..7
@@ -53,70 +53,24 @@ describe Ground do
 
             ground = day17.ground
 
-            ground.tick
-
+            ground.flow(Coords.new(500, 0))
+            puts ground.to_s(494..506, 0..13)
             ground.to_s(494..506, 0..13).should eq <<-OUTPUT
             ......+......
-            ......~.....#
-            .#..#.......#
-            .#..#..#.....
-            .#..#..#.....
-            .#.....#.....
-            .#.....#.....
-            .#######.....
-            .............
-            .............
-            ....#.....#..
-            ....#.....#..
-            ....#.....#..
-            ....#######..
+            ......|.....#
+            .#..#||||...#
+            .#..#~~#|....
+            .#..#~~#|....
+            .#~~~~~#|....
+            .#~~~~~#|....
+            .#######|....
+            ........|....
+            ...|||||||||.
+            ...|#~~~~~#|.
+            ...|#~~~~~#|.
+            ...|#~~~~~#|.
+            ...|#######|.
             OUTPUT
-
-            6.times { ground.tick }
-
-            ground.to_s(494..506, 0..13).should eq <<-OUTPUT
-            ......+......
-            ......~.....#
-            .#..#.~.....#
-            .#..#.~#.....
-            .#..#.~#.....
-            .#....~#.....
-            .#...~~#.....
-            .#######.....
-            .............
-            .............
-            ....#.....#..
-            ....#.....#..
-            ....#.....#..
-            ....#######..
-            OUTPUT
-
-            4.times { ground.tick }
-
-
-            loop do  
-                begin
-                    ground.tick
-                rescue SimulationEnded
-                    ground.to_s(494..506, 0..13).should eq <<-OUTPUT
-                    ......+......
-                    ......~.....#
-                    .#..#~~~~...#
-                    .#..#~~#~....
-                    .#..#~~#~....
-                    .#~~~~~#~....
-                    .#~~~~~#~....
-                    .#######~....
-                    ........~....
-                    ...~~~~~~....
-                    ...~#~~~~~#..
-                    ...~#~~~~~#..
-                    ...~#~~~~~#..
-                    ...~#######..
-                    OUTPUT
-                end
-            end
-
         end
     end
 
@@ -167,6 +121,41 @@ describe Day17 do
 
     describe "#part_a" do 
         it "behaves correctly for sample input" do
+            input = <<-INPUT
+            x=495, y=2..7
+            y=7, x=495..501
+            x=501, y=3..7
+            x=498, y=2..4
+            x=506, y=1..2
+            x=498, y=10..13
+            x=504, y=10..13
+            y=13, x=498..504
+            INPUT
+
+            day17 = Day17.new(input.lines)
+            day17.veins.size.should eq input.lines.size
+
+            day17.part_a.should eq 57
+        end
+    end
+
+    describe "#part_b" do 
+        it "behaves correctly for sample input" do
+            input = <<-INPUT
+            x=495, y=2..7
+            y=7, x=495..501
+            x=501, y=3..7
+            x=498, y=2..4
+            x=506, y=1..2
+            x=498, y=10..13
+            x=504, y=10..13
+            y=13, x=498..504
+            INPUT
+
+            day17 = Day17.new(input.lines)
+            day17.veins.size.should eq input.lines.size
+
+            day17.part_b.should eq 29
         end
     end
 

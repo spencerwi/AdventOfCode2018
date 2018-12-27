@@ -1,3 +1,9 @@
+enum Direction
+    Down,
+    Left,
+    Right,
+end
+
 alias X = Int32
 alias Y = Int32
 struct Coords
@@ -22,6 +28,15 @@ struct Coords
 
     def shifted_by(x : X, y : Y) : Coords
         return Coords.new(@x + x, @y + y)
+    end
+
+    def peek(direction : Direction) : Coords
+        new_x, new_y = case direction
+                       when .down?  then {@x,   @y+1}
+                       when .left?  then {@x-1, @y}
+                       when .right? then {@x+1, @y}
+                       end.not_nil!
+        return Coords.new(new_x, new_y)
     end
 
     def to_s
@@ -84,24 +99,19 @@ enum Element
     Sand,
     Clay,
     Spring,
-    Water
+    WaterAtRest,
+    WaterFlow
 
     def to_c
         case self
         when Sand then '.'
         when Clay then '#'
-        when Water then '~'
+        when WaterAtRest then '~'
+        when WaterFlow then '|'
         when Spring then '+'
         else raise "Unknown element: #{self}"
         end
     end
-
-    def can_be_filled_with_water?
-        self == Sand
-    end
-end
-
-class SimulationEnded < Exception
 end
 
 class Ground
@@ -154,50 +164,86 @@ class Ground
         x_range.each {|x| self[x, y] = value}
     end
 
+    def is_in_bounds?(coords : Coords) : Bool
+        return false if coords.x < 0 || coords.y < 0
+        return false if coords.x >= @width
+        return false if coords.y >= @height
+        return true
+    end
+
+    def count_cells_where(skip_count : Y, &block) : Int32
+        @arr.skip(skip_count).map_with_index do |row, y|
+            row.count {|cell| yield cell}
+        end.sum
+    end
+
     # Sim logic
-    def tick
-        down_one = @last_water_cell.shifted_by(0, 1)
-        SimulationEnded if down_one.y >= @height
+    def flow(coords : Coords)
+        return unless self.is_in_bounds?(coords)
+        one_space_down = coords.peek(Direction::Down)
+        return unless self.is_in_bounds?(one_space_down)
 
-        if self[down_one].sand?
-            @last_water_cell = down_one
-            self[down_one] = Element::Water
-        else 
-            # if we can't just drop water down, backtrack to the spring, and
-            # find the bottom of its "waterfall", then look to the left and 
-            # right of that. Keep backtracking "up" the "waterfall" as 
-            # needed.
-            bottom_of_direct_spring_flow : Y = 
-                (0...@height).take_while do |y| 
-                    self[@spring_x, y].water? || self[@spring_x, y].spring?
-                end.last
+        # If there's sand beneath us, flow down
+        if self[one_space_down].sand?
+            self[one_space_down] = Element::WaterFlow
+            self.flow(one_space_down) # flow downwards, recursively
+        end
 
-            loop do 
-                cursor_position = Coords.new(@spring_x, bottom_of_direct_spring_flow)
-                # try going left if you can, stop when you hit a wall or fill a spot
-                until self[cursor_position].clay? 
-                    cursor_position = cursor_position.shifted_by(-1, 0)
-                    if self[cursor_position].sand?
-                        @last_water_cell = cursor_position
-                        self[cursor_position] = Element::Water
-                        return
-                    end
-                end
-                # try going left if you can, stop when you hit a wall or fill a spot
-                cursor_position = Coords.new(@spring_x, bottom_of_direct_spring_flow)
-                until self[cursor_position].clay? 
-                    cursor_position = cursor_position.shifted_by(1, 0)
-                    if self[cursor_position].sand?
-                        @last_water_cell = cursor_position
-                        self[cursor_position] = Element::Water
-                        return
-                    end
-                end
+        # Now if there's clay or water-at-rest beneath us, we should try to flow
+        # left and/or right.
+        case self[one_space_down]
+        when .water_at_rest?, .clay? then
+            one_space_right = coords.peek(Direction::Right)
+            if self.is_in_bounds?(one_space_right) && self[one_space_right].sand?
+                self[one_space_right] = Element::WaterFlow
+                self.flow(one_space_right)
+            end
 
-                # Nothing yet? Then backtrack up the flow one step and try again.
-                bottom_of_direct_spring_flow -= 1
+            one_space_left = coords.peek(Direction::Left)
+            if self.is_in_bounds?(one_space_left) && self[one_space_left].sand?
+                self[one_space_left] = Element::WaterFlow
+                self.flow(one_space_left)
+            end
+
+            # Finally, if we're "boxed-in" at this level (walls on both sides,
+            # water-at-rest or clay below), then all the water on this level
+            # should be marked "at rest"
+            if self.boxed_in?(coords)
+                self.put_water_to_rest(coords, Direction::Left)
+                self.put_water_to_rest(coords, Direction::Right)
+                self[coords] = Element::WaterAtRest
             end
         end
+    end
+
+    # Traverses in `direction` from `start` marking water_flow cells as 
+    # water-at-rest.
+    private def put_water_to_rest(start : Coords, direction : Direction)
+        current_cell = start.peek(direction)
+        while self.is_in_bounds?(current_cell)
+            break unless self[current_cell].water_flow?
+            self[current_cell] = Element::WaterAtRest
+            current_cell = current_cell.peek(direction)
+        end
+    end
+
+    # Returns whether a given cell is "boxed in" on the left and right by clay
+    private def boxed_in?(coords : Coords) : Bool
+        return false unless self.has_wall_in_direction?(coords, Direction::Left) 
+        return false unless self.has_wall_in_direction?(coords, Direction::Right)
+        return true
+    end
+
+    # Returns whether a clay cell exists directly in `direction` from `coords`
+    private def has_wall_in_direction?(coords : Coords, direction : Direction)
+        return false if direction.down? # then it wouldn't be a wall, it'd be a floor, silly!
+        current_cell = coords.peek(direction)
+        while self.is_in_bounds?(current_cell)
+            break if self[current_cell].sand?
+            return true if self[current_cell].clay?
+            current_cell = current_cell.peek(direction)
+        end
+        return false
     end
 
     # Convenience printer
@@ -217,20 +263,40 @@ class Day17
     @ground : Ground
     getter veins, ground
 
+    @has_flowed : Bool
+
     def initialize(input : Array(String))
         @veins = input.map {|line| ClayVein.parse(line)}
         max_x = @veins.max_of(&.max_x)
         max_y = @veins.max_of(&.max_y)
         @ground = Ground.new(max_x + 1, max_y + 1) 
         @veins.each(&.apply(@ground))
+        @has_flowed = false
     end
 
-    def part_a
-        puts "Problem incomplete!"
+    # Part A problem statement: how many tiles can water reach?
+    def part_a : Int32
+        unless @has_flowed
+            @ground.flow(Coords.new(500, 0))
+            @has_flowed = true
+        end
+        min_y = @veins.min_of(&.min_y)
+        @ground.count_cells_where(min_y) {|cell| cell.water_at_rest? || cell.water_flow?}
+    end
+
+    # Part B problem statement: how many tiles are "water at rest"?
+    def part_b : Int32
+        unless @has_flowed
+            @ground.flow(Coords.new(500, 0))
+            @has_flowed = true
+        end
+        min_y = @veins.min_of(&.min_y)
+        @ground.count_cells_where(min_y) {|cell| cell.water_at_rest?}
     end
 end
 
 unless PROGRAM_NAME.includes?("crystal-run-spec")
     day17 = Day17.new(File.read_lines("input.txt"))
     puts "17A: #{day17.part_a}"
+    puts "17B: #{day17.part_b}"
 end
