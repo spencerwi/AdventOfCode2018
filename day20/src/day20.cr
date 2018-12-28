@@ -61,14 +61,15 @@ class Room
   end
 
   # Builds out the full "room map" as a graph from the given regex.
-  # Returns a set of all rooms created.
-  def self.build_from_regex(room_regex : String) : Set(Room)
+  # Returns a tuple of starting location and a set of all rooms created.
+  def self.build_from_regex(room_regex : String) : Tuple(Room, Set(Room))
     all_rooms = Set(Room).new
     # For branches, we'll want to "snap back" to where we were, so we keep a
     # "stack" of "snap-back" points. We assume based on reading the problem that
     # branches will *always* be wrapped in parens.
     room_stack = Deque(Room).new
-    current_room = Room.new
+    start_room = Room.new
+    current_room = start_room
     all_rooms << current_room
     room_regex.chars.skip(1).each do |c|
       case c
@@ -86,29 +87,45 @@ class Room
       all_rooms << current_room
     end
 
-    return all_rooms
+    return start_room, all_rooms
   end
 end
 
 class Day20
   @rooms : Set(Room)
+  @start_room : Room
 
   def initialize(input_str : String)
-    @rooms = Room.build_from_regex(input_str)
+    @start_room, @rooms = Room.build_from_regex(input_str)
   end
 
-  def part_a
-    longest_rooms_path =
-      @rooms.to_a.each_combination(2).compact_map do |(r1, r2)|
-        success = ->(r : Room){ r === r2}
-        get_neighbors = ->(r : Room) { r.neighbors }
-        Pathfinding.bfs(r1, success, get_neighbors)
-      end.max_of(&.size)
-    return longest_rooms_path - 1 # You always see 1 less door than you do rooms
+  def solve : Tuple(Int32, Int32)
+    longest_rooms_path = 0
+    over_1000_count = 0
+    @rooms.each do |room|
+      next if room == @start_room
+      path = self.path_between(@start_room, room)
+      if path
+        longest_rooms_path = Math.max(longest_rooms_path, path.size)
+        over_1000_count += 1 if path.size > 1000
+      end
+    end
+    return {
+      longest_rooms_path - 1, # You always see 1 less door than you do rooms,
+      over_1000_count
+    }
+  end
+
+  private def path_between(r1 : Room, r2 : Room) : Array(Room)?
+    success = ->(r : Room){ r === r2}
+    get_neighbors = ->(r : Room) { r.neighbors }
+    return Pathfinding.bfs(r1, success, get_neighbors)
   end
 end
 
 unless PROGRAM_NAME.includes?("crystal-run-spec")
   day20 = Day20.new(File.read("input.txt"))
-  puts "20A: #{day20.part_a}"
+  part_a, part_b = day20.solve
+  puts "20A: #{part_a}"
+  puts "20B: #{part_b}"
 end

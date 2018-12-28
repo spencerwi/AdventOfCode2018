@@ -72,10 +72,10 @@ describe Room do
       #   #####
       #   #.|.#
       #   #-###
-      #   #.|.#
+      #   #.|X#
       #   #####
 
-      all_rooms = Room.build_from_regex(simple_input)
+      _, all_rooms = Room.build_from_regex(simple_input)
       all_rooms.size.should eq 4
       top_left_room = all_rooms.find do |room|
         room.has_door?(Direction::South) && room.has_door?(Direction::East)
@@ -102,10 +102,10 @@ describe Room do
       #   ###-###
       #   #.|.|.#
       #   ###-###
-      #     #.#
+      #     #X#
       #     ###
 
-      all_rooms = Room.build_from_regex(sample_input)
+      _, all_rooms = Room.build_from_regex(sample_input)
       all_rooms.size.should eq 5
 
       center_room = all_rooms.find do |room|
@@ -136,11 +136,11 @@ describe Room do
       #   #-#######
       #   #.|.|.|.#
       #   #-#####-#
-      #   #.#.#.|.#
+      #   #.#.#X|.#
       #   #-#-#####
       #   #.|.|.|.#
       #   #########
-      all_rooms = Room.build_from_regex(sample_input)
+      _, all_rooms = Room.build_from_regex(sample_input)
       all_rooms.size.should eq 16
       top_left_room = all_rooms.find do |room|
         room.doors === Set(Direction).new([Direction::South, Direction::East])
@@ -236,7 +236,7 @@ describe Day20 do
       }
 
       samples.each do |input, output|
-        Day20.new(input).part_a.should eq output
+        Day20.new(input).solve.first.should eq output
       end
     end
   end
