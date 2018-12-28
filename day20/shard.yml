@@ -1,0 +1,17 @@
+name: day20
+version: 0.1.0
+
+authors:
+  - spencerwi <spencerwi@gmail.com>
+
+dependencies:
+  pathfinding:
+    github: dawkot/pathfinding
+
+targets:
+  day20:
+    main: src/day20.cr
+
+crystal: 0.27.0
+
+license: MIT
